@@ -62,6 +62,7 @@ for d in deps:
     fixname = fix_name(name)
     print("Fetch dep:", name)
     result = subprocess.run(["/usr/bin/yumdownloader", "--url", "--urlprotocols", "http", fixname] , stdout=subprocess.PIPE)
-    url = re.search('http\:.*?\.rpm', result.stdout.decode("utf-8") , re.DOTALL).group().strip('"')
+    url = re.search('http\:.[^\n]*\.rpm', result.stdout.decode("utf-8") , re.DOTALL).group().strip('"')
+    print(url)
     sha = get_sha256(url)
     update_http_output(o, name, url, sha) 
