@@ -18,11 +18,10 @@ def get_sha256(url):
 
 def update_http_output(o, name, url, sha):
     o.write("http_file(\n")
-    o.write('   name = "'+name+'",\n')
-    o.write('   sha256 = "'+sha+'",\n')
-    o.write('   urls = [\n')
-    o.write('       "'+url+'",\n')
-    o.write('       "https://storage.googleapis.com/builddeps/'+sha+'",\n')
+    o.write('    name = "'+name+'",\n')
+    o.write('    sha256 = "'+sha+'",\n')
+    o.write('    urls = [\n')
+    o.write('        "'+url+'",\n')
     o.write('   ],\n')
     o.write(')\n\n')
 
