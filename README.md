@@ -5,7 +5,7 @@ docker build --tag fetch-workspace .
 ```
 Run the script in the dir of your input WORKSPACE
 ```bash
-docker run -ti --security-opt label=disable -v $(pwd):/out fetch-workspace python3 fetch-repo-workspace.py -i WORKSPACE -o output
+docker run -w out -ti --security-opt label=disable -v $(pwd):/out fetch-workspace python3 fetch-repo-workspace.py -i WORKSPACE -w
 ```
 
 
