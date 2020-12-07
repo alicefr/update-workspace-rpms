@@ -39,14 +39,16 @@ def get_url(name):
 inputfile = ''
 outputfile = ''
 
-opts, args = getopt.getopt(sys.argv[1:],"hi:o:",["ifile=","ofile="])
+opts, args = getopt.getopt(sys.argv[1:],"hi:o:w",["ifile=","ofile="])
 for opt, arg in opts:
    if opt == '-h':
-      print('test.py -i <inputfile> -o <outputfile>')
+      print("test.py: \n  -i <inputfile>\n  -w overwrite inputfile\n  -o <outputfile>\n  (-o and -w are mutually exclusive)")
       sys.exit()
    elif opt in ("-i", "--ifile"):
       inputfile = arg
-   elif opt in ("-o", "--ofile"):
+   elif opt in ("-w"):
+       outputfile = inputfile
+   elif opt in ("-o", "--ofile") and opt != "-w":
       outputfile = arg
 
 if inputfile == "":
@@ -54,7 +56,7 @@ if inputfile == "":
     sys.exit()
 
 if outputfile == "":
-    print('Provide input file: -o <outputfile>')
+    print('Provide output file: -o <outputfile> or -w to overwrite the inputfile')
     sys.exit()
 
 # Read the input file and find the http_file
