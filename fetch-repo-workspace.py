@@ -18,13 +18,23 @@ def get_sha256(url):
 
 def update_http_output(o, name, url, sha):
     o.writelines([
-    'http_file(\n',
+    'http_file(\n', 
     '    name = "'+name+'",\n',
     '    sha256 = "'+sha+'",\n',
     '    urls = [\n',
     '        "'+url+'",\n',
     '   ],\n',
     ')\n\n'])
+
+def get_name_from_line(line):
+    return re.search('\".*?\"', line).group().strip('"')
+
+def get_url(name):
+    fixname = fix_name(name)
+    print("Fetch dep:", name)
+    result = subprocess.run(["/usr/bin/yumdownloader", "--url", "--urlprotocols", "http", fixname] , stdout=subprocess.PIPE)
+    return re.search('http\:.[^\n]*[^i686]\.rpm', result.stdout.decode("utf-8") , re.DOTALL).group().strip('"')
+
 
 inputfile = ''
 outputfile = ''
@@ -47,18 +57,32 @@ if outputfile == "":
     print('Provide input file: -o <outputfile>')
     sys.exit()
 
+# Read the input file and find the http_file
 f = open(inputfile, "r")
+lines = f.readlines()
+f.close()
 
-deps = re.findall('http_file\(.*?\)', f.read(), re.DOTALL)
+# Remove output file if exists
 if os.path.exists(outputfile):
   os.remove(outputfile)
-
 o = open(outputfile, 'a+')
-for d in deps:
-    name = re.search('\".*?\"', re.split('\n', d)[1], re.DOTALL).group().strip('"')
-    fixname = fix_name(name)
-    print("Fetch dep:", name)
-    result = subprocess.run(["/usr/bin/yumdownloader", "--url", "--urlprotocols", "http", fixname] , stdout=subprocess.PIPE)
-    url = re.search('http\:.[^\n]*[^i686]\.rpm', result.stdout.decode("utf-8") , re.DOTALL).group().strip('"')
-    sha = get_sha256(url)
-    update_http_output(o, name, url, sha) 
+
+find_next_parenthesis = False
+for l in lines:
+    if find_next_parenthesis and "name =" in l:
+        name = get_name_from_line(l)
+        url = get_url(name)
+        sha = get_sha256(url)
+        update_http_output(o, name, url, sha) 
+
+    if "http_file(" in l : 
+        find_next_parenthesis = True
+        continue
+
+    if find_next_parenthesis and l == ")":
+        find_next_parenthesis = False
+        continue
+    if find_next_parenthesis:
+        continue
+
+    o.write(l)
