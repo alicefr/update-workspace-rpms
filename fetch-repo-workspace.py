@@ -17,13 +17,14 @@ def get_sha256(url):
     return hash.hexdigest()
 
 def update_http_output(o, name, url, sha):
-    o.write("http_file(\n")
-    o.write('    name = "'+name+'",\n')
-    o.write('    sha256 = "'+sha+'",\n')
-    o.write('    urls = [\n')
-    o.write('        "'+url+'",\n')
-    o.write('   ],\n')
-    o.write(')\n\n')
+    o.writelines([
+    'http_file(\n',
+    '    name = "'+name+'",\n',
+    '    sha256 = "'+sha+'",\n',
+    '    urls = [\n',
+    '        "'+url+'",\n',
+    '   ],\n',
+    ')\n\n'])
 
 inputfile = ''
 outputfile = ''
@@ -46,9 +47,6 @@ if outputfile == "":
     print('Provide input file: -o <outputfile>')
     sys.exit()
 
-print('Input file is "', inputfile)
-print('Output file is "', outputfile)
-
 f = open(inputfile, "r")
 
 deps = re.findall('http_file\(.*?\)', f.read(), re.DOTALL)
@@ -57,12 +55,10 @@ if os.path.exists(outputfile):
 
 o = open(outputfile, 'a+')
 for d in deps:
-    dep = re.split('\n', d)[1]
-    name = re.search('\".*?\"',dep, re.DOTALL).group().strip('"')
+    name = re.search('\".*?\"', re.split('\n', d)[1], re.DOTALL).group().strip('"')
     fixname = fix_name(name)
     print("Fetch dep:", name)
     result = subprocess.run(["/usr/bin/yumdownloader", "--url", "--urlprotocols", "http", fixname] , stdout=subprocess.PIPE)
     url = re.search('http\:.[^\n]*[^i686]\.rpm', result.stdout.decode("utf-8") , re.DOTALL).group().strip('"')
-    print(url)
     sha = get_sha256(url)
     update_http_output(o, name, url, sha) 
